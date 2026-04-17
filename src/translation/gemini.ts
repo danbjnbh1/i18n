@@ -28,14 +28,20 @@ export class GeminiProvider implements TranslationProvider {
   async translate(text: string, targetLocale: string): Promise<string> {
     const language = languageName(targetLocale);
     const prompt = [
-      `Translate the following UI string to ${language}.`,
-      "Return only the translated string, with no explanations and no surrounding quotes.",
-      "If placeholders like {{name}}, {{count}}, or {{value}} appear, keep them exactly unchanged.",
-      "You may move placeholders to match natural grammar in the target language.",
-      "For RTL languages (Hebrew/Arabic), prefer natural RTL phrasing.",
-      "",
-      text,
+      `Act as a professional UI localization expert. Translate the provided string into [Language].
+
+        ### RULES:
+        1. **Output Format:** Return ONLY the translated text. No quotes, no explanations, no "Translation:" prefix.
+        2. **Placeholders:** Keep placeholders like {{name}}, {{count}}, or {{value}} exactly as they are. You may move their position within the sentence to maintain natural grammar, but do not translate the text inside the braces.
+        3. **RTL Logic (CRITICAL):** For RTL languages like Hebrew or Arabic, provide the string in LOGICAL ORDER (the order characters are stored in memory). Do not attempt to "visually" flip the string or the placeholders. The software's rendering engine will handle the visual display.
+        4. **Tone:** Use a professional, user-friendly UI tone appropriate for buttons, labels, and notifications.
+
+        ### INPUT:
+        String: ${text}"
+        Language: ${language}`,
     ].join("\n");
+
+    console.debug(`Gemini prompt for locale "${targetLocale}":\n${prompt}`);
 
     try {
       const model = this.client.getGenerativeModel({ model: this.modelName });
