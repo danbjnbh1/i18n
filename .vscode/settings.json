@@ -1,0 +1,6 @@
+{
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "typescript.preferences.excludeLibrarySymbolsInNavTo": true,
+  "search.exclude": { "**/node_modules": true },
+  "files.exclude": { "**/node_modules": true }
+}
