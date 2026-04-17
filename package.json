@@ -1,5 +1,5 @@
 {
-  "name": "@danbjnbh1/i18n",
+  "name": "@dan-nachmany/i18n",
   "version": "0.1.0",
   "description": "Standalone i18n with auto key generation, pluggable storage (local/S3), and an LLM-powered translation CLI.",
   "keywords": [
@@ -11,7 +11,7 @@
     "cloudflare-r2"
   ],
   "license": "MIT",
-  "author": "danbjnbh1",
+  "author": "dan-nachmany",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
