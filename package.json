@@ -1,16 +1,28 @@
 {
-  "name": "@your-org/i18n",
+  "name": "@danbjnbh1/i18n",
   "version": "1.0.0",
   "description": "Standalone i18n package with local and S3 storage, Gemini translation CLI",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "bin": {
     "i18n-translate": "dist/translator.js"
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "translate": "ts-node src/translator.ts"
+    "translate": "ts-node src/translator.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danbjnbh1/i18n.git"
+  },
+  "homepage": "https://github.com/danbjnbh1/i18n#readme",
+  "bugs": {
+    "url": "https://github.com/danbjnbh1/i18n/issues"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.600.0",
@@ -23,5 +35,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
