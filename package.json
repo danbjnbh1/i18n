@@ -1,6 +1,6 @@
 {
   "name": "@dan-nachmany/i18n",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Standalone i18n with auto key generation, pluggable storage (local/S3), and an LLM-powered translation CLI.",
   "keywords": [
     "i18n",
