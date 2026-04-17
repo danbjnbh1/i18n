@@ -1,9 +1,4 @@
-import {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
-  NoSuchKey,
-} from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand, NoSuchKey } from "@aws-sdk/client-s3";
 import { fromIni } from "@aws-sdk/credential-providers";
 import { StorageError } from "../errors";
 import { DEFAULT_S3_BUCKET, DEFAULT_S3_REGION, DEFAULT_S3_PROFILE } from "../constants";
