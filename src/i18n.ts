@@ -15,7 +15,6 @@ import type { Storage, TranslationMap } from "./storage/types";
  */
 export class I18n {
   private translations: TranslationMap = {};
-  private fallbackTranslations: TranslationMap = {};
 
   private constructor(
     private readonly config: ResolvedI18nConfig,
@@ -32,21 +31,14 @@ export class I18n {
   }
 
   private async load(): Promise<void> {
-    const { project, locale, fallback, logger } = this.config;
-    logger.debug("Loading translations", { project, locale, fallback });
+    const { project, locale, logger } = this.config;
+    logger.debug("Loading translations", { project, locale });
 
     try {
-      const [primary, fb] = await Promise.all([
-        this.storage.read(project, locale),
-        locale !== fallback ? this.storage.read(project, fallback) : Promise.resolve({}),
-      ]);
-
-      this.translations = primary;
-      this.fallbackTranslations = fb;
+      this.translations = await this.storage.read(project, locale);
       logger.info("Translations loaded", {
         locale,
-        primaryKeys: Object.keys(primary).length,
-        fallbackKeys: Object.keys(fb).length,
+        primaryKeys: Object.keys(this.translations).length,
       });
     } catch (err) {
       logger.warn("Failed to load translations, using source text as fallback", {
@@ -66,10 +58,7 @@ export class I18n {
   t(text: string, params?: Record<string, string | number>, callerFile?: string): string {
     const file = callerFile ?? getCallerFile(1);
     const key = toKey(file, text);
-    const raw =
-      this.translations[key] ??
-      (this.config.locale !== this.config.fallback ? this.fallbackTranslations[key] : undefined) ??
-      text;
+    const raw = this.translations[key] ?? text;
 
     return interpolate(raw, params);
   }

@@ -1,4 +1,4 @@
-import { DEFAULT_FALLBACK_LOCALE, DEFAULT_LOCALES_DIR } from "./constants";
+import { DEFAULT_LOCALES_DIR } from "./constants";
 import { I18nConfigError } from "./errors";
 import { ConsoleLogger, type Logger } from "./logger";
 import type { Storage } from "./storage/types";
@@ -12,7 +12,6 @@ export type StorageType = "local" | "s3";
 export interface I18nConfig {
   locale: string;
   project: string;
-  fallback?: string;
   storage?: StorageType;
   localesDir?: string;
   /** Inject a custom storage implementation, bypasses `storage`/`localesDir`. */
@@ -24,7 +23,6 @@ export interface I18nConfig {
 export interface ResolvedI18nConfig {
   locale: string;
   project: string;
-  fallback: string;
   storage: StorageType;
   localesDir: string;
   storageAdapter?: Storage;
@@ -38,7 +36,6 @@ export function resolveConfig(config: I18nConfig): ResolvedI18nConfig {
   return {
     locale: config.locale,
     project: config.project,
-    fallback: config.fallback ?? DEFAULT_FALLBACK_LOCALE,
     storage: config.storage ?? "local",
     localesDir: config.localesDir ?? DEFAULT_LOCALES_DIR,
     storageAdapter: config.storageAdapter,

@@ -2,7 +2,6 @@
  * Shared constants. Centralized so tuning is one-stop.
  */
 
-export const DEFAULT_FALLBACK_LOCALE = "en";
 export const DEFAULT_S3_BUCKET = "my-ai-i18n-translations";
 export const DEFAULT_S3_REGION = "us-east-1";
 export const DEFAULT_S3_PROFILE = "personal";
