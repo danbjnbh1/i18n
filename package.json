@@ -1,0 +1,27 @@
+{
+  "name": "@your-org/i18n",
+  "version": "1.0.0",
+  "description": "Standalone i18n package with local and S3 storage, Gemini translation CLI",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "i18n-translate": "dist/translator.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "translate": "ts-node src/translator.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@google/generative-ai": "^0.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
