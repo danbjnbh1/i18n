@@ -10,7 +10,10 @@
       "Bash(npm run:*)",
       "Bash(npx prettier:*)",
       "Bash(npm version:*)",
-      "Bash(npm publish:*)"
+      "Bash(npm publish:*)",
+      "Read(//Users/dan.nachmany/workspace/Private/Coding/grocery/src/**)",
+      "Read(//Users/dan.nachmany/workspace/Private/Coding/grocery/**)",
+      "Bash(mkdir -p /Users/dan.nachmany/workspace/Private/Coding/grocery/locales/grocery)"
     ]
   }
 }
