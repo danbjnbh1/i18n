@@ -34,6 +34,7 @@ export class GeminiProvider implements TranslationProvider {
       const result = await model.generateContent(prompt);
       return result.response.text().trim();
     } catch (err) {
+      console.error(`Gemini translation error for locale "${targetLocale}":`, err);
       throw new TranslationError(`Gemini translation failed for locale "${targetLocale}"`, err);
     }
   }
