@@ -4,7 +4,7 @@
 
 export const DEFAULT_FALLBACK_LOCALE = "en";
 export const DEFAULT_LOCALES_DIR = "./locales";
-export const DEFAULT_GEMINI_MODEL = "gemini-2.0-flash";
+export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite";
 export const DEFAULT_RATE_LIMIT_MS = 200;
 
 /** Max characters retained from the source string when building a key slug. */
