@@ -1,66 +1,42 @@
-import type { Storage } from "./storage/interface";
-import { LocalStorage } from "./storage/local";
-import { S3Storage } from "./storage/s3";
-import { toKey } from "./key";
-import { getCallerFile } from "./caller";
-
-export type { Storage } from "./storage/interface";
-export { toKey } from "./key";
-
-export interface I18nConfig {
-  locale: string;
-  fallback?: string;
-  project: string;
-  storage?: "local" | "s3";
-  localesDir?: string;
-}
-
-interface I18nState {
-  locale: string;
-  fallback: string;
-  project: string;
-  storage: Storage;
-  translations: Record<string, string>;
-  fallbackTranslations: Record<string, string>;
-}
-
-let state: I18nState | null = null;
-
-export async function init(config: I18nConfig): Promise<void> {
-  const { locale, project, storage: storageType = "local", localesDir = "./locales" } = config;
-  const fallback = config.fallback ?? "en";
-
-  const storage: Storage =
-    storageType === "s3" ? new S3Storage() : new LocalStorage(localesDir);
-
-  const [translations, fallbackTranslations] = await Promise.all([
-    storage.read(project, locale),
-    locale !== fallback ? storage.read(project, fallback) : Promise.resolve({} as Record<string, string>),
-  ]);
-
-  state = { locale, fallback, project, storage, translations, fallbackTranslations };
-}
-
 /**
- * Translate a string. File path is detected automatically from the call stack.
+ * Public API.
  *
- * Usage: t("Welcome to the app")
- *        t("Hello {{name}}", { name: "Alice" })
+ * Most consumers want:
+ *   import { init, t } from "@danbjnbh1/i18n";
+ *
+ * Advanced consumers (multi-instance, custom providers, custom storage) can
+ * reach for the named class/interface exports below.
  */
-export function t(text: string, params?: Record<string, string>): string {
-  if (!state) throw new Error("i18n not initialized — call init() first");
 
-  const filePath = getCallerFile();
-  const key = toKey(filePath, text);
-  const raw =
-    state.translations[key] ??
-    (state.locale !== state.fallback ? state.fallbackTranslations[key] : undefined) ??
-    text;
+export { I18n, init, t, getInstance, reset } from "./i18n";
 
-  if (!params) return raw;
-  return raw.replace(/\{\{(\w+)\}\}/g, (_, k) => params[k] ?? `{{${k}}}`);
-}
+export type { I18nConfig, ResolvedI18nConfig, StorageType } from "./config";
 
-export function getState(): Readonly<I18nState> | null {
-  return state;
-}
+export {
+  type Storage,
+  type TranslationMap,
+  LocalStorage,
+  S3Storage,
+  type S3StorageOptions,
+  createStorage,
+} from "./storage";
+
+export {
+  type TranslationProvider,
+  GeminiProvider,
+  type GeminiProviderOptions,
+  languageName,
+} from "./translation";
+
+export { type Logger, type LogLevel, ConsoleLogger, SilentLogger } from "./logger";
+
+export {
+  I18nError,
+  I18nNotInitializedError,
+  I18nConfigError,
+  StorageError,
+  TranslationError,
+} from "./errors";
+
+export { toKey } from "./core/key";
+export { interpolate } from "./core/interpolate";

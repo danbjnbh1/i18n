@@ -1,20 +1,42 @@
 {
   "name": "@danbjnbh1/i18n",
-  "version": "1.0.0",
-  "description": "Standalone i18n package with local and S3 storage, Gemini translation CLI",
+  "version": "0.1.0",
+  "description": "Standalone i18n with auto key generation, pluggable storage (local/S3), and an LLM-powered translation CLI.",
+  "keywords": [
+    "i18n",
+    "internationalization",
+    "translation",
+    "gemini",
+    "s3",
+    "cloudflare-r2"
+  ],
+  "license": "MIT",
+  "author": "danbjnbh1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "bin": {
-    "i18n-translate": "dist/translator.js"
+    "i18n-translate": "dist/cli/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/cli/index.js",
     "dev": "tsc --watch",
-    "translate": "ts-node src/translator.ts",
-    "prepublishOnly": "npm run build"
+    "clean": "rm -rf dist coverage",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "translate": "ts-node src/cli/index.ts",
+    "prepublishOnly": "npm run clean && npm run typecheck && npm run lint && npm test && npm run build"
   },
   "repository": {
     "type": "git",
@@ -29,9 +51,15 @@
     "@google/generative-ai": "^0.15.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.10.0",
     "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "eslint": "^9.10.0",
+    "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.5.0",
+    "vitest": "^1.6.0"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -3,28 +3,55 @@ import {
   GetObjectCommand,
   PutObjectCommand,
   NoSuchKey,
+  type S3ClientConfig,
 } from "@aws-sdk/client-s3";
-import type { Storage } from "./interface";
+import { StorageError, I18nConfigError } from "../errors";
+import type { Storage, TranslationMap } from "./types";
 
+export interface S3StorageOptions {
+  bucket: string;
+  endpoint?: string;
+  region?: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+}
+
+/**
+ * S3-compatible storage. Works with AWS S3, Cloudflare R2, Backblaze B2, MinIO.
+ * Credentials and endpoint can be passed directly or sourced from env vars
+ * via `S3Storage.fromEnv()` for ergonomic CLI use.
+ */
 export class S3Storage implements Storage {
-  private client: S3Client;
-  private bucket: string;
+  private readonly client: S3Client;
+  private readonly bucket: string;
 
-  constructor() {
-    const endpoint = process.env.S3_ENDPOINT;
-    const region = process.env.S3_REGION ?? "auto";
+  constructor(options: S3StorageOptions) {
+    if (!options.bucket) throw new I18nConfigError("S3 bucket is required");
+
+    this.bucket = options.bucket;
+    const clientConfig: S3ClientConfig = {
+      region: options.region ?? "auto",
+    };
+    if (options.endpoint) clientConfig.endpoint = options.endpoint;
+    if (options.accessKeyId && options.secretAccessKey) {
+      clientConfig.credentials = {
+        accessKeyId: options.accessKeyId,
+        secretAccessKey: options.secretAccessKey,
+      };
+    }
+    this.client = new S3Client(clientConfig);
+  }
+
+  static fromEnv(): S3Storage {
     const bucket = process.env.S3_BUCKET;
+    if (!bucket) throw new I18nConfigError("S3_BUCKET env var required for S3 storage");
 
-    if (!bucket) throw new Error("S3_BUCKET env var required for S3 storage");
-
-    this.bucket = bucket;
-    this.client = new S3Client({
-      region,
-      ...(endpoint ? { endpoint } : {}),
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-      },
+    return new S3Storage({
+      bucket,
+      endpoint: process.env.S3_ENDPOINT,
+      region: process.env.S3_REGION,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     });
   }
 
@@ -32,28 +59,32 @@ export class S3Storage implements Storage {
     return `${project}/${locale}.json`;
   }
 
-  async read(project: string, locale: string): Promise<Record<string, string>> {
+  async read(project: string, locale: string): Promise<TranslationMap> {
+    const key = this.key(project, locale);
     try {
-      const res = await this.client.send(
-        new GetObjectCommand({ Bucket: this.bucket, Key: this.key(project, locale) })
-      );
+      const res = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: key }));
       const body = await res.Body?.transformToString("utf-8");
       if (!body) return {};
-      return JSON.parse(body) as Record<string, string>;
+      return JSON.parse(body) as TranslationMap;
     } catch (err) {
       if (err instanceof NoSuchKey) return {};
-      throw err;
+      throw new StorageError(`Failed to read s3://${this.bucket}/${key}`, err);
     }
   }
 
-  async write(project: string, locale: string, data: Record<string, string>): Promise<void> {
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: this.key(project, locale),
-        Body: JSON.stringify(data, null, 2) + "\n",
-        ContentType: "application/json",
-      })
-    );
+  async write(project: string, locale: string, data: TranslationMap): Promise<void> {
+    const key = this.key(project, locale);
+    try {
+      await this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+          Body: JSON.stringify(data, null, 2) + "\n",
+          ContentType: "application/json",
+        }),
+      );
+    } catch (err) {
+      throw new StorageError(`Failed to write s3://${this.bucket}/${key}`, err);
+    }
   }
 }
