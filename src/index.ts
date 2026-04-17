@@ -18,6 +18,7 @@ export {
   LocalStorage,
   S3Storage,
   type S3StorageOptions,
+  MemoryStorage,
   createStorage,
 } from "./storage";
 
