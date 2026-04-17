@@ -16,8 +16,6 @@ export {
   type Storage,
   type TranslationMap,
   LocalStorage,
-  S3Storage,
-  type S3StorageOptions,
   MemoryStorage,
   createStorage,
 } from "./storage";
