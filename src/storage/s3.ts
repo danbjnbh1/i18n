@@ -3,55 +3,35 @@ import {
   GetObjectCommand,
   PutObjectCommand,
   NoSuchKey,
-  type S3ClientConfig,
 } from "@aws-sdk/client-s3";
-import { StorageError, I18nConfigError } from "../errors";
+import { fromIni } from "@aws-sdk/credential-providers";
+import { StorageError } from "../errors";
+import { DEFAULT_S3_BUCKET, DEFAULT_S3_REGION, DEFAULT_S3_PROFILE } from "../constants";
 import type { Storage, TranslationMap } from "./types";
 
 export interface S3StorageOptions {
   bucket: string;
-  endpoint?: string;
-  region?: string;
-  accessKeyId?: string;
-  secretAccessKey?: string;
+  region: string;
+  profile: string;
 }
 
-/**
- * S3-compatible storage. Works with AWS S3, Cloudflare R2, Backblaze B2, MinIO.
- * Credentials and endpoint can be passed directly or sourced from env vars
- * via `S3Storage.fromEnv()` for ergonomic CLI use.
- */
 export class S3Storage implements Storage {
   private readonly client: S3Client;
   private readonly bucket: string;
 
   constructor(options: S3StorageOptions) {
-    if (!options.bucket) throw new I18nConfigError("S3 bucket is required");
-
     this.bucket = options.bucket;
-    const clientConfig: S3ClientConfig = {
-      region: options.region ?? "auto",
-    };
-    if (options.endpoint) clientConfig.endpoint = options.endpoint;
-    if (options.accessKeyId && options.secretAccessKey) {
-      clientConfig.credentials = {
-        accessKeyId: options.accessKeyId,
-        secretAccessKey: options.secretAccessKey,
-      };
-    }
-    this.client = new S3Client(clientConfig);
+    this.client = new S3Client({
+      region: options.region,
+      credentials: fromIni({ profile: options.profile }),
+    });
   }
 
   static fromEnv(): S3Storage {
-    const bucket = process.env.S3_BUCKET;
-    if (!bucket) throw new I18nConfigError("S3_BUCKET env var required for S3 storage");
-
     return new S3Storage({
-      bucket,
-      endpoint: process.env.S3_ENDPOINT,
-      region: process.env.S3_REGION,
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      bucket: process.env.S3_BUCKET ?? DEFAULT_S3_BUCKET,
+      region: process.env.S3_REGION ?? DEFAULT_S3_REGION,
+      profile: process.env.AWS_PROFILE ?? DEFAULT_S3_PROFILE,
     });
   }
 
