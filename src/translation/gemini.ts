@@ -27,7 +27,15 @@ export class GeminiProvider implements TranslationProvider {
 
   async translate(text: string, targetLocale: string): Promise<string> {
     const language = languageName(targetLocale);
-    const prompt = `Translate the following UI string to ${language}. Return only the translated string, no explanations, no quotes.\n\n${text}`;
+    const prompt = [
+      `Translate the following UI string to ${language}.`,
+      "Return only the translated string, with no explanations and no surrounding quotes.",
+      "If placeholders like {{name}}, {{count}}, or {{value}} appear, keep them exactly unchanged.",
+      "You may move placeholders to match natural grammar in the target language.",
+      "For RTL languages (Hebrew/Arabic), prefer natural RTL phrasing.",
+      "",
+      text,
+    ].join("\n");
 
     try {
       const model = this.client.getGenerativeModel({ model: this.modelName });
