@@ -6,6 +6,7 @@ export const DEFAULT_FALLBACK_LOCALE = "en";
 export const DEFAULT_S3_BUCKET = "my-ai-i18n-translations";
 export const DEFAULT_S3_REGION = "us-east-1";
 export const DEFAULT_S3_PROFILE = "personal";
+export const DEFAULT_S3_PUBLIC_URL = `https://${DEFAULT_S3_BUCKET}.s3.${DEFAULT_S3_REGION}.amazonaws.com`;
 export const DEFAULT_LOCALES_DIR = "./locales";
 export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite";
 export const DEFAULT_RATE_LIMIT_MS = 200;

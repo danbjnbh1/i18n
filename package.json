@@ -60,7 +60,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.600.0",
     "@aws-sdk/credential-providers": "^3.1031.0",
-    "@google/generative-ai": "^0.15.0"
+    "@google/generative-ai": "^0.15.0",
+    "axios": "^1.15.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
