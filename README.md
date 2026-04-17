@@ -1,4 +1,6 @@
-# @danbjnbh1/i18n
+# @dan-nachmany/i18n
+
+[![npm](https://img.shields.io/npm/v/@dan-nachmany/i18n)](https://www.npmjs.com/package/@dan-nachmany/i18n)
 
 Standalone i18n with auto key generation, pluggable storage (local / S3-compatible), and an LLM-powered translation CLI.
 
