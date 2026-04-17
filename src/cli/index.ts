@@ -21,7 +21,7 @@ import { GeminiProvider } from "../translation/gemini";
 import { syncTranslations } from "./sync";
 
 function getStorage(logger: ConsoleLogger): Storage {
-  const type = process.env.I18N_STORAGE ?? "local";
+  const type = process.env.I18N_STORAGE ?? "s3";
   if (type === "s3") {
     logger.info("Using S3 storage");
     return S3Storage.fromEnv();

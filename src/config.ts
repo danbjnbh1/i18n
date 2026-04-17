@@ -36,7 +36,7 @@ export function resolveConfig(config: I18nConfig): ResolvedI18nConfig {
   return {
     locale: config.locale,
     project: config.project,
-    storage: config.storage ?? "local",
+    storage: config.storage ?? "s3",
     localesDir: config.localesDir ?? DEFAULT_LOCALES_DIR,
     storageAdapter: config.storageAdapter,
     logger: config.logger ?? new ConsoleLogger("warn"),
