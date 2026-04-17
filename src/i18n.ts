@@ -35,18 +35,24 @@ export class I18n {
     const { project, locale, fallback, logger } = this.config;
     logger.debug("Loading translations", { project, locale, fallback });
 
-    const [primary, fb] = await Promise.all([
-      this.storage.read(project, locale),
-      locale !== fallback ? this.storage.read(project, fallback) : Promise.resolve({}),
-    ]);
+    try {
+      const [primary, fb] = await Promise.all([
+        this.storage.read(project, locale),
+        locale !== fallback ? this.storage.read(project, fallback) : Promise.resolve({}),
+      ]);
 
-    this.translations = primary;
-    this.fallbackTranslations = fb;
-    logger.info("Translations loaded", {
-      locale,
-      primaryKeys: Object.keys(primary).length,
-      fallbackKeys: Object.keys(fb).length,
-    });
+      this.translations = primary;
+      this.fallbackTranslations = fb;
+      logger.info("Translations loaded", {
+        locale,
+        primaryKeys: Object.keys(primary).length,
+        fallbackKeys: Object.keys(fb).length,
+      });
+    } catch (err) {
+      logger.warn("Failed to load translations, using source text as fallback", {
+        error: (err as Error).message,
+      });
+    }
   }
 
   /**
