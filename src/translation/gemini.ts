@@ -25,31 +25,67 @@ export class GeminiProvider implements TranslationProvider {
     return new GeminiProvider({ apiKey });
   }
 
-  async translate(text: string, targetLocale: string): Promise<string> {
+  async translateBatch(texts: string[], targetLocale: string): Promise<string[]> {
     const language = languageName(targetLocale);
-    const prompt = [
-      `Act as a professional UI localization expert. Translate the provided string into [Language].
+    const input: Record<string, string> = {};
+    texts.forEach((t, i) => {
+      input[String(i)] = t;
+    });
 
-        ### RULES:
-        1. **Output Format:** Return ONLY the translated text. No quotes, no explanations, no "Translation:" prefix.
-        2. **Placeholders:** Keep placeholders like {{name}}, {{count}}, or {{value}} exactly as they are. You may move their position within the sentence to maintain natural grammar, but do not translate the text inside the braces.
-        3. **RTL Logic (CRITICAL):** For RTL languages like Hebrew or Arabic, provide the string in LOGICAL ORDER (the order characters are stored in memory). Do not attempt to "visually" flip the string or the placeholders. The software's rendering engine will handle the visual display.
-        4. **Tone:** Use a professional, user-friendly UI tone appropriate for buttons, labels, and notifications.
+    const prompt = `You are a professional UI localization engine. Translate the following JSON object values into ${language}.
 
-        ### INPUT:
-        String: ${text}"
-        Language: ${language}`,
-    ].join("\n");
+RULES (follow exactly):
+- Return ONLY a valid JSON object. No markdown, no code fences, no explanation.
+- Preserve every key exactly as-is.
+- Preserve placeholders like {{name}}, {{count}}, {{value}} unchanged.
+- For RTL languages (Hebrew, Arabic, etc.) output strings in logical order — do not visually flip.
+- Use a professional, concise UI tone suitable for buttons, labels, and notifications.
+- Every key from the input MUST appear in the output with a non-empty string value.
 
-    console.debug(`Gemini prompt for locale "${targetLocale}":\n${prompt}`);
+INPUT:
+${JSON.stringify(input, null, 2)}`;
 
     try {
-      const model = this.client.getGenerativeModel({ model: this.modelName });
+      const model = this.client.getGenerativeModel({
+        model: this.modelName,
+        generationConfig: { responseMimeType: "application/json" },
+      });
       const result = await model.generateContent(prompt);
-      return result.response.text().trim();
+      const raw = result.response.text().trim();
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        throw new TranslationError(
+          `Gemini returned non-JSON response for locale "${targetLocale}": ${raw.slice(0, 120)}`,
+        );
+      }
+
+      if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+        throw new TranslationError(
+          `Gemini response is not a JSON object for locale "${targetLocale}"`,
+        );
+      }
+
+      const output = parsed as Record<string, unknown>;
+      const translations = texts.map((_, i) => {
+        const value = output[String(i)];
+        if (typeof value !== "string" || !value.trim()) {
+          throw new TranslationError(
+            `Gemini missing or empty translation for index ${i} (locale "${targetLocale}")`,
+          );
+        }
+        return value;
+      });
+
+      return translations;
     } catch (err) {
-      console.error(`Gemini translation error for locale "${targetLocale}":`, err);
-      throw new TranslationError(`Gemini translation failed for locale "${targetLocale}"`, err);
+      if (err instanceof TranslationError) throw err;
+      throw new TranslationError(
+        `Gemini batch translation failed for locale "${targetLocale}"`,
+        err,
+      );
     }
   }
 }

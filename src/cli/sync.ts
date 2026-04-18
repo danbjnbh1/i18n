@@ -1,4 +1,4 @@
-import { DEFAULT_RATE_LIMIT_MS } from "../constants";
+import { DEFAULT_BATCH_SIZE, DEFAULT_RATE_LIMIT_MS } from "../constants";
 import type { Logger } from "../logger";
 import type { Storage, TranslationMap } from "../storage/types";
 import type { TranslationProvider } from "../translation/types";
@@ -87,25 +87,31 @@ async function syncLocale(args: {
   logger.info(`Processing locale: ${locale}`);
 
   const localeData = await storage.read(project, locale);
+
+  const missing = Object.entries(sourceMap).filter(([key]) => !localeData[key]);
   let added = 0;
   let failed = 0;
 
-  for (const [key, text] of Object.entries(sourceMap)) {
-    if (localeData[key]) continue;
+  for (let i = 0; i < missing.length; i += DEFAULT_BATCH_SIZE) {
+    const chunk = missing.slice(i, i + DEFAULT_BATCH_SIZE);
+    const keys = chunk.map(([key]) => key);
+    const texts = chunk.map(([, text]) => text);
 
     try {
-      const translated = await provider.translate(text, locale);
-      localeData[key] = translated;
-      added++;
-      logger.debug(`  ${key} → ${truncate(translated, 60)}`);
+      const translated = await provider.translateBatch(texts, locale);
+      for (let j = 0; j < keys.length; j++) {
+        localeData[keys[j]!] = translated[j]!;
+        logger.debug(`  ${keys[j]} → ${truncate(translated[j]!, 60)}`);
+      }
+      added += keys.length;
     } catch (err) {
-      failed++;
-      logger.error(`  Failed to translate "${truncate(text, 40)}"`, {
+      failed += keys.length;
+      logger.error(`  Batch failed (${keys.length} strings)`, {
         error: (err as Error).message,
       });
     }
 
-    if (rateLimitMs > 0) await sleep(rateLimitMs);
+    if (rateLimitMs > 0 && i + DEFAULT_BATCH_SIZE < missing.length) await sleep(rateLimitMs);
   }
 
   await storage.write(project, locale, sortMap(localeData));

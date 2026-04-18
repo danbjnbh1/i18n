@@ -9,6 +9,7 @@ export const DEFAULT_S3_PUBLIC_URL = `https://${DEFAULT_S3_BUCKET}.s3.${DEFAULT_
 export const DEFAULT_LOCALES_DIR = "./locales";
 export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite";
 export const DEFAULT_RATE_LIMIT_MS = 200;
+export const DEFAULT_BATCH_SIZE = 25;
 
 /** Max characters retained from the source string when building a key slug. */
 export const KEY_TEXT_SLUG_MAX_LEN = 30;

@@ -1,9 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import ts from "typescript";
 import { toKey } from "../core/key";
-
-/** Matches `t("...")`, `t('...')`, `` t(`...`) `` — single-line strings only. */
-const T_CALL_RE = /\bt\(\s*(['"`])((?:(?!\1).)*)\1/g;
 
 export interface ExtractedKey {
   key: string;
@@ -22,14 +20,25 @@ export async function extractKeysFromFiles(files: string[]): Promise<Map<string,
     files.map(async (file) => {
       const content = await fs.readFile(file, "utf-8");
       const relPath = path.relative(process.cwd(), file).replace(/\\/g, "/");
+      const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
 
-      T_CALL_RE.lastIndex = 0;
-      let match: RegExpExecArray | null;
-      while ((match = T_CALL_RE.exec(content)) !== null) {
-        const text = match[2];
-        if (!text || !text.trim()) continue;
-        const key = toKey(relPath, text);
-        keys.set(key, { key, text, file: relPath });
+      visit(sourceFile);
+
+      function visit(node: ts.Node): void {
+        if (
+          ts.isCallExpression(node) &&
+          ts.isIdentifier(node.expression) &&
+          node.expression.text === "t" &&
+          node.arguments.length >= 1
+        ) {
+          const arg = node.arguments[0]!;
+          const isPlainTemplate = ts.isNoSubstitutionTemplateLiteral(arg) && arg.text.trim();
+          if ((ts.isStringLiteral(arg) || isPlainTemplate) && arg.text.trim()) {
+            const key = toKey(relPath, arg.text);
+            keys.set(key, { key, text: arg.text, file: relPath });
+          }
+        }
+        ts.forEachChild(node, visit);
       }
     }),
   );
