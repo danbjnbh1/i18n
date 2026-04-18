@@ -4,18 +4,20 @@ import { StorageError } from "../errors";
 import type { Storage, TranslationMap } from "./types";
 
 /**
- * Filesystem-backed storage. Files live at `{baseDir}/{project}/{locale}.json`.
+ * Filesystem-backed storage. Files live at `{localesDir}/{locale}.json`.
  * Writes are atomic via tmpfile + rename to avoid partial-write corruption.
+ * The `project` param on read/write is ignored — path points directly at the
+ * locales folder for the current project.
  */
 export class LocalStorage implements Storage {
-  constructor(private readonly baseDir: string) {}
+  constructor(private readonly localesDir: string) {}
 
-  private filePath(project: string, locale: string): string {
-    return path.join(this.baseDir, project, `${locale}.json`);
+  private filePath(locale: string): string {
+    return path.join(this.localesDir, `${locale}.json`);
   }
 
-  async read(project: string, locale: string): Promise<TranslationMap> {
-    const fp = this.filePath(project, locale);
+  async read(_project: string, locale: string): Promise<TranslationMap> {
+    const fp = this.filePath(locale);
     try {
       const raw = await fs.readFile(fp, "utf-8");
       return JSON.parse(raw) as TranslationMap;
@@ -25,12 +27,11 @@ export class LocalStorage implements Storage {
     }
   }
 
-  async write(project: string, locale: string, data: TranslationMap): Promise<void> {
-    const fp = this.filePath(project, locale);
-    const dir = path.dirname(fp);
+  async write(_project: string, locale: string, data: TranslationMap): Promise<void> {
+    const fp = this.filePath(locale);
     const tmp = `${fp}.${process.pid}.tmp`;
     try {
-      await fs.mkdir(dir, { recursive: true });
+      await fs.mkdir(this.localesDir, { recursive: true });
       await fs.writeFile(tmp, JSON.stringify(data, null, 2) + "\n", "utf-8");
       await fs.rename(tmp, fp);
     } catch (err) {

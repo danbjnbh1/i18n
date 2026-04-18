@@ -64,7 +64,7 @@ This walks `./src`, extracts every `t("…")` call, writes the source-of-truth `
 | `I18N_PROJECT`          | `app`        | Project name (storage namespace)         |
 | `I18N_SOURCE_LOCALE`    | `en`         | Source-of-truth locale                   |
 | `I18N_STORAGE`          | `local`      | `local` or `s3`                          |
-| `LOCALES_DIR`           | `./locales`  | Local storage directory                  |
+| `LOCALES_DIR`           | `./locales`  | Folder containing `{locale}.json` files  |
 | `I18N_RATE_LIMIT_MS`    | `200`        | Delay between provider calls             |
 | `LOG_LEVEL`             | `info`       | `debug` \| `info` \| `warn` \| `error`   |
 

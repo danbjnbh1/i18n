@@ -26,10 +26,19 @@ describe("LocalStorage", () => {
     expect(await storage.read("proj", "fr")).toEqual({ greeting: "Bonjour" });
   });
 
-  it("creates nested project directory automatically", async () => {
+  it("writes locale file directly under localesDir", async () => {
     const storage = new LocalStorage(dir);
-    await storage.write("nested-proj", "es", { hi: "Hola" });
-    const filePath = path.join(dir, "nested-proj", "es.json");
+    await storage.write("ignored", "es", { hi: "Hola" });
+    const filePath = path.join(dir, "es.json");
+    const stat = await fs.stat(filePath);
+    expect(stat.isFile()).toBe(true);
+  });
+
+  it("creates localesDir if missing", async () => {
+    const nested = path.join(dir, "nested", "locales");
+    const storage = new LocalStorage(nested);
+    await storage.write("proj", "de", { hi: "Hallo" });
+    const filePath = path.join(nested, "de.json");
     const stat = await fs.stat(filePath);
     expect(stat.isFile()).toBe(true);
   });

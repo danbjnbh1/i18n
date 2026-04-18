@@ -7,7 +7,7 @@
  *   I18N_PROJECT           — project name (default "app")
  *   I18N_SOURCE_LOCALE     — source-of-truth locale (default "en")
  *   I18N_STORAGE           — "local" | "s3" (default "local")
- *   LOCALES_DIR            — local storage dir (default "./locales")
+ *   LOCALES_DIR            — folder containing {locale}.json files (default "./locales")
  *   I18N_RATE_LIMIT_MS     — delay between translation calls (default 200)
  *   LOG_LEVEL              — debug | info | warn | error (default "info")
  *   S3_BUCKET, S3_ENDPOINT, S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
