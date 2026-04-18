@@ -13,7 +13,9 @@
       "Bash(npm publish:*)",
       "Read(//Users/dan.nachmany/workspace/Private/Coding/grocery/src/**)",
       "Read(//Users/dan.nachmany/workspace/Private/Coding/grocery/**)",
-      "Bash(mkdir -p /Users/dan.nachmany/workspace/Private/Coding/grocery/locales/grocery)"
+      "Bash(mkdir -p /Users/dan.nachmany/workspace/Private/Coding/grocery/locales/grocery)",
+      "Bash(npm info *)",
+      "Bash(node -e \"const v=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const arr=JSON.parse\\(v\\); console.log\\(arr.filter\\(x=>x.startsWith\\('10.'\\)\\).slice\\(-5\\).join\\('\\\\n'\\)\\)\")"
     ]
   }
 }
