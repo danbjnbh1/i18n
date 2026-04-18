@@ -18,17 +18,23 @@ import { LocalStorage } from "../storage/local";
 import { S3Storage } from "../storage/s3";
 import type { Storage } from "../storage/types";
 import { GeminiProvider } from "../translation/gemini";
+import { writeLocalesIndex } from "./indexWriter";
 import { syncTranslations } from "./sync";
 
-function getStorage(logger: ConsoleLogger): Storage {
-  const type = process.env.I18N_STORAGE ?? "s3";
+interface StorageSelection {
+  storage: Storage;
+  localDir?: string;
+}
+
+function getStorage(logger: ConsoleLogger): StorageSelection {
+  const type = process.env.I18N_STORAGE ?? "local";
   if (type === "s3") {
     logger.info("Using S3 storage");
-    return S3Storage.fromEnv();
+    return { storage: S3Storage.fromEnv() };
   }
   const dir = process.env.LOCALES_DIR ?? "./locales";
   logger.info(`Using local storage at ${dir}`);
-  return new LocalStorage(dir);
+  return { storage: new LocalStorage(dir), localDir: dir };
 }
 
 async function main(): Promise<void> {
@@ -51,7 +57,7 @@ async function main(): Promise<void> {
   const sourceLocale = process.env.I18N_SOURCE_LOCALE ?? "en";
   const rateLimitMs = Number(process.env.I18N_RATE_LIMIT_MS ?? 200);
 
-  const storage = getStorage(logger);
+  const { storage, localDir } = getStorage(logger);
   const provider = GeminiProvider.fromEnv();
 
   const result = await syncTranslations({
@@ -64,6 +70,11 @@ async function main(): Promise<void> {
     logger,
     rateLimitMs,
   });
+
+  if (localDir) {
+    const indexPath = await writeLocalesIndex(localDir);
+    logger.info(`Wrote ${indexPath}`);
+  }
 
   logger.info("Done", { totalKeys: result.totalKeys, perLocale: result.perLocale });
 }

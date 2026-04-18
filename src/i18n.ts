@@ -3,8 +3,8 @@ import { getCallerFile } from "./core/caller";
 import { interpolate } from "./core/interpolate";
 import { toKey } from "./core/key";
 import { I18nNotInitializedError } from "./errors";
-import { createStorage } from "./storage/factory";
-import type { Storage, TranslationMap } from "./storage/types";
+import { HttpStorage } from "./storage/http";
+import type { TranslationMap } from "./storage/types";
 
 /**
  * I18n instance — load translations once, then call `t()` to translate.
@@ -16,26 +16,31 @@ import type { Storage, TranslationMap } from "./storage/types";
 export class I18n {
   private translations: TranslationMap = {};
 
-  private constructor(
-    private readonly config: ResolvedI18nConfig,
-    private readonly storage: Storage,
-  ) {}
+  private constructor(private readonly config: ResolvedI18nConfig) {}
 
   /** Build, load translations, and return a ready-to-use instance. */
   static async create(config: I18nConfig): Promise<I18n> {
     const resolved = resolveConfig(config);
-    const storage = createStorage(resolved);
-    const instance = new I18n(resolved, storage);
+    const instance = new I18n(resolved);
     await instance.load();
     return instance;
   }
 
   private async load(): Promise<void> {
-    const { project, locale, logger } = this.config;
+    const { project, locale, locales, logger } = this.config;
     logger.debug("Loading translations", { project, locale });
 
+    if (locales) {
+      this.translations = locales[locale] ?? {};
+      logger.info("Translations loaded from config", {
+        locale,
+        primaryKeys: Object.keys(this.translations).length,
+      });
+      return;
+    }
+
     try {
-      this.translations = await this.storage.read(project, locale);
+      this.translations = await new HttpStorage().read(project, locale);
       logger.info("Translations loaded", {
         locale,
         primaryKeys: Object.keys(this.translations).length,

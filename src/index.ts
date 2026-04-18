@@ -4,21 +4,15 @@
  * Most consumers want:
  *   import { init, t } from "@danbjnbh1/i18n";
  *
- * Advanced consumers (multi-instance, custom providers, custom storage) can
- * reach for the named class/interface exports below.
+ * Advanced consumers (multi-instance, custom providers) can reach for the
+ * named class/interface exports below.
  */
 
 export { I18n, init, t, getInstance, reset } from "./i18n";
 
-export type { I18nConfig, ResolvedI18nConfig, StorageType } from "./config";
+export type { I18nConfig, ResolvedI18nConfig } from "./config";
 
-export {
-  type Storage,
-  type TranslationMap,
-  LocalStorage,
-  MemoryStorage,
-  createStorage,
-} from "./storage";
+export type { Storage, TranslationMap } from "./storage";
 
 export {
   type TranslationProvider,

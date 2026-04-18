@@ -1,9 +1,6 @@
-import { DEFAULT_LOCALES_DIR } from "./constants";
 import { I18nConfigError } from "./errors";
 import { ConsoleLogger, type Logger } from "./logger";
-import type { Storage } from "./storage/types";
-
-export type StorageType = "local" | "s3";
+import type { TranslationMap } from "./storage/types";
 
 /**
  * Public-facing config accepted by `init()`. All optional fields fall back to
@@ -12,10 +9,12 @@ export type StorageType = "local" | "s3";
 export interface I18nConfig {
   locale: string;
   project: string;
-  storage?: StorageType;
-  localesDir?: string;
-  /** Inject a custom storage implementation, bypasses `storage`/`localesDir`. */
-  storageAdapter?: Storage;
+  /**
+   * Pre-loaded translations keyed by locale. Typically the default export of
+   * a generated `locales/index.ts` file. When provided, no network access
+   * happens at runtime. Otherwise translations are fetched over HTTP.
+   */
+  locales?: Record<string, TranslationMap>;
   logger?: Logger;
 }
 
@@ -23,9 +22,7 @@ export interface I18nConfig {
 export interface ResolvedI18nConfig {
   locale: string;
   project: string;
-  storage: StorageType;
-  localesDir: string;
-  storageAdapter?: Storage;
+  locales?: Record<string, TranslationMap>;
   logger: Logger;
 }
 
@@ -36,9 +33,7 @@ export function resolveConfig(config: I18nConfig): ResolvedI18nConfig {
   return {
     locale: config.locale,
     project: config.project,
-    storage: config.storage ?? "s3",
-    localesDir: config.localesDir ?? DEFAULT_LOCALES_DIR,
-    storageAdapter: config.storageAdapter,
+    locales: config.locales,
     logger: config.logger ?? new ConsoleLogger("warn"),
   };
 }
